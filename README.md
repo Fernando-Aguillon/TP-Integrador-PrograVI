@@ -208,6 +208,8 @@ TP-Integrador-PrograVI/
 └── README.md
 ```
 
-## 7. Repositorio
+## 7. Repositorio y video
 
 https://github.com/Fernando-Aguillon/TP-Integrador-PrograVI
+
+https://drive.google.com/file/d/1F595MvX6qoA6zk6_oyZEwx1xHRAd54lm/view?usp=sharing
