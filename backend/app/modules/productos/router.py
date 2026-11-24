@@ -40,6 +40,28 @@ def listar_productos(
 
 
 @router.get(
+    "/admin",
+    response_model=schema.ProductoPage
+)
+def listar_productos_admin(
+    _admin: AdminDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    search: str | None = Query(None, max_length=150),
+    categoria_id: int | None = Query(None, gt=0),
+    disponible: bool | None = None
+):
+    return service.listar(
+        skip=skip,
+        limit=limit,
+        search=search,
+        categoria_id=categoria_id,
+        disponible=disponible,
+        incluir_inactivos=True
+    )
+
+
+@router.get(
     "/{producto_id}",
     response_model=schema.ProductoRead
 )
@@ -102,3 +124,14 @@ def eliminar_producto(
     return Response(
         status_code=status.HTTP_204_NO_CONTENT
     )
+
+
+@router.patch(
+    "/{producto_id}/activar",
+    response_model=schema.ProductoRead
+)
+def reactivar_producto(
+    producto_id: Annotated[int, Path(gt=0)],
+    _admin: AdminDep
+):
+    return service.reactivar(producto_id)

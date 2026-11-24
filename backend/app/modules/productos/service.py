@@ -45,7 +45,8 @@ def listar(
     limit: int = 20,
     search: str | None = None,
     categoria_id: int | None = None,
-    disponible: bool | None = None
+    disponible: bool | None = None,
+    incluir_inactivos: bool = False
 ) -> ProductoPage:
 
     with ProductoUnitOfWork() as uow:
@@ -54,7 +55,8 @@ def listar(
             limit=limit,
             search=search,
             categoria_id=categoria_id,
-            disponible=disponible
+            disponible=disponible,
+            incluir_inactivos=incluir_inactivos
         )
 
         return ProductoPage(
@@ -171,3 +173,20 @@ def eliminar(producto_id: int) -> None:
 
         product.activo = False
         uow.session.add(product)
+
+
+def reactivar(producto_id: int) -> ProductoRead:
+    with ProductoUnitOfWork() as uow:
+        product = uow.productos.get_by_id(producto_id)
+
+        if product is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Producto no encontrado"
+            )
+
+        product.activo = True
+        uow.session.add(product)
+        uow.session.flush()
+
+        return _read(product)

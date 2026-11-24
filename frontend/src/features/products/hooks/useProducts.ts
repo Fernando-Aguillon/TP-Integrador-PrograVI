@@ -36,7 +36,7 @@ export function useProducts(filters: ProductFilters) {
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      apiRequest<ProductoPage>(`/productos/?${params.toString()}`),
+      apiRequest<ProductoPage>(`${filters.admin ? '/productos/admin' : '/productos/'}?${params.toString()}`),
   })
 
   useEffect(() => {
@@ -99,5 +99,21 @@ export function useProducts(filters: ProductFilters) {
       ),
   })
 
-  return { query, save, remove }
+  const reactivate = useMutation({
+    mutationFn: (id: number) =>
+      apiRequest<Producto>(`/productos/${id}/activar`, {
+        method: 'PATCH',
+      }),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ['productos'] })
+      notify('Producto reactivado.', 'success')
+    },
+    onError: (error) =>
+      notify(
+        error instanceof Error ? error.message : 'No se pudo reactivar el producto.',
+        'error',
+      ),
+  })
+
+  return { query, save, remove, reactivate }
 }

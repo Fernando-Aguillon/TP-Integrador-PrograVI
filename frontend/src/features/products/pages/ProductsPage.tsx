@@ -34,7 +34,7 @@ export default function ProductsPage() {
   const user = useAuthStore((state) => state.user)
   const isAdmin = user?.role === 'admin'
 
-  const { query, save, remove } = useProducts({
+  const { query, save, remove, reactivate } = useProducts({
     search: searchValue,
     categoriaId: categoryId ? Number(categoryId) : null,
     skip: isAdmin ? 0 : skip,
@@ -71,24 +71,33 @@ export default function ProductsPage() {
         header: 'Precio',
         cell: ({ getValue }) => money(Number(getValue())),
       },
-      {
-        accessorKey: 'stock',
-        header: 'Stock',
-      },
-      {
-        accessorKey: 'disponible',
-        header: 'Disponibilidad',
-        cell: ({ getValue }) =>
-          getValue() ? 'Disponible' : 'No disponible',
-      },
     ]
 
     if (isAdmin) {
+      definitions.push(
+        {
+          accessorKey: 'stock',
+          header: 'Stock',
+        },
+        {
+          accessorKey: 'disponible',
+          header: 'Disponibilidad',
+          cell: ({ getValue }) =>
+            getValue() ? 'Disponible' : 'No disponible',
+        },
+      )
+
+      definitions.push({
+        accessorKey: 'activo',
+        header: 'Estado',
+        cell: ({ getValue }) => getValue() ? 'Activo' : 'Desactivado',
+      })
+
       definitions.push({
         id: 'acciones',
         header: 'Acciones',
         enableSorting: false,
-        cell: ({ row }) => (
+        cell: ({ row }) => row.original.activo ? (
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -111,6 +120,14 @@ export default function ProductsPage() {
               Desactivar
             </button>
           </div>
+        ) : (
+          <button
+            onClick={() => reactivate.mutate(row.original.id)}
+            disabled={reactivate.isPending}
+            className="font-semibold text-emerald-700 disabled:opacity-50"
+          >
+            Reactivar
+          </button>
         ),
       })
 
@@ -120,7 +137,7 @@ export default function ProductsPage() {
         enableSorting: false,
         cell: ({ row }) => (
           <button
-            disabled={!row.original.disponible || row.original.stock < 1}
+            disabled={!row.original.activo || !row.original.disponible || row.original.stock < 1}
             onClick={() => {
               const product = row.original
 
@@ -192,7 +209,7 @@ export default function ProductsPage() {
     }
 
     return definitions
-  }, [isAdmin, remove, addToCart, notify, addedId, navigate])
+  }, [isAdmin, remove, reactivate, addToCart, notify, addedId, navigate])
 
   async function submit(data: ProductoData) {
     await save.mutateAsync({
@@ -282,6 +299,9 @@ export default function ProductsPage() {
         }}
         emptyMessage="No hay productos para estos filtros."
         manualPagination={!isAdmin}
+        getRowClassName={(product) =>
+          isAdmin && !product.activo ? 'bg-slate-100 opacity-50' : ''
+        }
       />
 
       {!isAdmin && (

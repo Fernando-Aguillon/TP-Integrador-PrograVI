@@ -10,9 +10,13 @@ class ProductoRepository(BaseRepository[Producto]):
         super().__init__(session, Producto)
 
     def search(self, *, skip: int, limit: int, search: str | None,
-               categoria_id: int | None, disponible: bool | None) -> tuple[int, list[Producto]]:
-        statement = select(Producto).where(Producto.activo.is_(True))
-        count_statement = select(func.count(Producto.id)).where(Producto.activo.is_(True))
+               categoria_id: int | None, disponible: bool | None,
+               incluir_inactivos: bool = False) -> tuple[int, list[Producto]]:
+        statement = select(Producto)
+        count_statement = select(func.count(Producto.id))
+        if not incluir_inactivos:
+            statement = statement.where(Producto.activo.is_(True))
+            count_statement = count_statement.where(Producto.activo.is_(True))
         if disponible is not None:
             statement = statement.where(Producto.disponible.is_(disponible))
             count_statement = count_statement.where(Producto.disponible.is_(disponible))

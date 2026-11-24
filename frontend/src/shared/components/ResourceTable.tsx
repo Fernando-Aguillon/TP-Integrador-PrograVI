@@ -17,6 +17,7 @@ interface ResourceTableProps<TData extends RowData> {
   onRetry?: () => void
   emptyMessage: string
   manualPagination?: boolean
+  getRowClassName?: (row: TData) => string
 }
 
 export default function ResourceTable<TData extends RowData>({
@@ -27,6 +28,7 @@ export default function ResourceTable<TData extends RowData>({
   onRetry,
   emptyMessage,
   manualPagination = false,
+  getRowClassName,
 }: ResourceTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -163,7 +165,10 @@ export default function ResourceTable<TData extends RowData>({
 
           <tbody className="divide-y divide-slate-100">
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50/70">
+              <tr
+                key={row.id}
+                className={`hover:bg-slate-50/70 ${getRowClassName?.(row.original) ?? ''}`}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
