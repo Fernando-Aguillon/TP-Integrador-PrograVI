@@ -1,6 +1,10 @@
+
+from __future__ import annotations
+
 from typing import Generic, TypeVar
 
 from sqlmodel import Session, SQLModel, select
+
 
 ModelT = TypeVar("ModelT", bound=SQLModel)
 
