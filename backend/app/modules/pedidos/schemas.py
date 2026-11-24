@@ -1,10 +1,14 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 EstadoPedido = Literal["PENDIENTE", "EN_PREPARACION", "ENTREGADO", "CANCELADO"]
 FormaPago = Literal["EFECTIVO", "TRANSFERENCIA"]
+DireccionEntrega = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=5, max_length=200),
+]
 
 
 class ItemPedidoCreate(BaseModel):
@@ -15,7 +19,7 @@ class ItemPedidoCreate(BaseModel):
 class PedidoCreate(BaseModel):
     items: list[ItemPedidoCreate] = Field(min_length=1, max_length=50)
     forma_pago: FormaPago
-    direccion_entrega: str = Field(min_length=5, max_length=200)
+    direccion_entrega: DireccionEntrega
     notas: str | None = Field(default=None, max_length=1000)
 
 class PedidoEstadoUpdate(BaseModel):

@@ -6,7 +6,7 @@ NombreCategoria = Annotated[str, StringConstraints(strip_whitespace=True, min_le
 
 class CategoriaBase(BaseModel):
     nombre: NombreCategoria = Field(examples=["Tecnología"])
-    descripcion: str = Field(default="", max_length=2000, examples=["Artículos electrónicos y accesorios"])
+    descripcion: str = Field(default="", max_length=1000, examples=["Artículos electrónicos y accesorios"])
 
 
 class CategoriaCreate(CategoriaBase):

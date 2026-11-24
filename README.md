@@ -1,77 +1,213 @@
+
 # Food Store
 
-Trabajo Práctico Integrador de Programación IV. La aplicación reúne una API REST con FastAPI y SQLModel y un frontend administrativo con React, TypeScript y Vite. El modelo contempla usuarios y roles, categorías, productos, relación producto-categoría, pedidos y sus detalles, estados y formas de pago. La API expone autenticación con JWT en cookie HttpOnly y protege las operaciones de escritura con el rol `admin`.
+Trabajo Práctico Integrador de Programación IV.
+
+Food Store es una aplicación de gestión de pedidos y productos que utiliza FastAPI, SQLModel y PostgreSQL en el backend, y React, TypeScript y Vite en el frontend.
 
 ## Requisitos
 
-- Python 3.10 o posterior.
-- PostgreSQL 14 o posterior, con una base vacía creada para Food Store.
-- Node.js 20 o posterior y pnpm 9 o posterior.
+- Python 3.11, 3.12 o 3.13.
+- PostgreSQL 14 o superior.
+- Node.js 20.19 o superior.
+- pnpm 9 o superior.
 
-## Configuración del backend
+## 1. Clonar el repositorio
 
-Desde la raíz del proyecto, abrir PowerShell:
+```bash
+git clone https://github.com/Fernando-Aguillon/TP-Integrador-PrograVI.git
+cd TP-Integrador-PrograVI
+```
+
+## 2. Configurar el backend
+
+Desde la raíz del proyecto, abrir una terminal PowerShell:
 
 ```powershell
 cd backend
+
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
 python -m pip install -r requirements.txt
+
 Copy-Item .env.example .env
 ```
 
-Editar `backend/.env` y establecer `DATABASE_URL` con las credenciales de PostgreSQL y un `SECRET_KEY` aleatorio. El usuario de PostgreSQL indicado debe poder crear tablas en la base. Ejemplo de URL: `postgresql://postgres:contraseña@localhost:5432/food_store`.
+Editar `backend/.env` y configurar las variables necesarias.
 
-| Variable | Uso |
-| --- | --- |
-| `DATABASE_URL` | Conexión PostgreSQL usada por SQLModel. |
-| `CORS_ORIGINS` | Orígenes del frontend separados por coma; desarrollo usa `http://localhost:5173`. |
-| `SECRET_KEY` | Secreto para firmar tokens; cambiarlo antes de desplegar. |
-| `ALGORITHM` | Algoritmo de firma JWT (`HS256`). |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Duración del token de acceso en minutos (30 por defecto). |
-| `COOKIE_SECURE` | Usar `false` en HTTP local y `true` detrás de HTTPS. |
-| `COOKIE_SAMESITE` | Política SameSite de la cookie (`lax` en desarrollo). |
-| `FRONTEND_ORIGIN` | Origen del frontend permitido en CORS. |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Credenciales del administrador creado por el seed. |
-| `ADMIN_NOMBRE`, `ADMIN_APELLIDO` | Nombre y apellido de esa cuenta. |
+### Variables de entorno
 
-Inicializar la base con roles, estados, formas de pago, categorías, ingredientes, productos con stock y la cuenta administradora. El comando es idempotente:
+| Variable | Descripción |
+|---|---|
+| DATABASE_URL | Cadena de conexión a PostgreSQL. |
+| CORS_ORIGINS | Orígenes permitidos para solicitudes CORS. |
+| FRONTEND_ORIGIN | Origen del frontend. |
+| SECRET_KEY | Clave secreta utilizada para firmar JWT. |
+| ALGORITHM | Algoritmo de firma del token. |
+| ACCESS_TOKEN_EXPIRE_MINUTES | Duración del token en minutos. |
+| COOKIE_SECURE | Activar en producción cuando se utiliza HTTPS. |
+| COOKIE_SAMESITE | Política SameSite de la cookie. |
+| ADMIN_USERNAME | Usuario del administrador inicial. |
+| ADMIN_EMAIL | Correo del administrador inicial. |
+| ADMIN_PASSWORD | Contraseña del administrador inicial. |
+| ADMIN_FULL_NAME | Nombre completo del administrador. |
+
+Ejemplo de conexión PostgreSQL:
+
+```env
+DATABASE_URL=postgresql://postgres:TU_CONTRASENA@localhost:5432/food_store
+```
+
+La base de datos `food_store` debe existir previamente.
+
+### Inicializar la base de datos
+
+Con el entorno virtual activo y ubicado dentro de `backend`:
 
 ```powershell
 python -m app.db.seed
 ```
 
-Credenciales locales del seed de ejemplo: `admin@foodstore.com` / `Admin1234!`. Cambiar la contraseña en `.env` antes de compartir o desplegar el sistema; el seed conserva la contraseña de una cuenta existente.
+Este comando crea las tablas necesarias y carga los datos iniciales:
 
-Iniciar la API desde `backend`:
+- Cuenta administradora.
+- Categorías de productos.
+- Productos de ejemplo con stock inicial.
+
+El proceso es idempotente: puede ejecutarse nuevamente sin duplicar los registros iniciales existentes.
+
+Credenciales predeterminadas del administrador:
+
+| Campo | Valor |
+|---|---|
+| Usuario | admin |
+| Contraseña | Admin1234! |
+| Correo | admin@foodstore.com |
+
+Cambiar las credenciales en `.env` antes de utilizar el sistema fuera del entorno local.
+
+### Ejecutar el backend
+
+Desde la carpeta `backend`:
 
 ```powershell
 uvicorn app.main:app --reload
 ```
 
-Documentación interactiva: <http://localhost:8000/docs>. Estado: <http://localhost:8000/health>.
+La API estará disponible en:
 
-## Configuración del frontend
+- API: http://localhost:8000
+- Swagger: http://localhost:8000/docs
+- Health check: http://localhost:8000/health
 
-En otra terminal, desde la raíz:
+## 3. Configurar el frontend
+
+Abrir otra terminal PowerShell desde la raíz del proyecto:
 
 ```powershell
 cd frontend
+
 Copy-Item .env.example .env
+
 pnpm install
-pnpm build
+```
+
+La variable `VITE_API_URL` configura la URL base de la API.
+
+Valor predeterminado:
+
+```env
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+### Ejecutar el frontend
+
+```powershell
 pnpm dev
 ```
 
-`frontend/.env.example` contiene `VITE_API_URL`, la URL base de la API. Para desarrollo local apunta a `http://localhost:8000/api/v1`; si se modifica, reiniciar Vite. La interfaz queda disponible en <http://localhost:5173>.
+La aplicación estará disponible en:
 
-## Funcionalidades
+http://localhost:5173
 
-- Registro, inicio y cierre de sesión; autorización por roles.
-- Catálogo público de productos; altas, cambios y bajas disponibles para administración.
-- Carrito persistido en el navegador, checkout con dirección y forma de pago, consulta/cancelación de pedidos.
-- Panel de pedidos con transiciones de estado y resumen de pedidos/ingresos.
-- Consulta y administración de categorías, productos, stock, ingredientes y usuarios.
-- Gestión de usuarios desde la sección de administración.
-- Descuento de stock al crear pedidos y restitución al cancelar.
-- Endpoints documentados automáticamente en Swagger/OpenAPI.
+### Generar el build de producción
+
+```powershell
+pnpm build
+```
+
+## 4. Funcionalidades principales
+
+### Usuarios y autenticación
+
+- Registro e inicio de sesión.
+- Autenticación mediante JWT almacenado en cookie HttpOnly.
+- Cierre de sesión.
+- Autorización según roles de usuario.
+- Gestión administrativa de usuarios.
+
+### Catálogo
+
+- Consulta de productos.
+- Búsqueda y paginación.
+- Administración de categorías.
+- Alta, modificación y baja de productos.
+- Gestión de disponibilidad y stock.
+
+### Pedidos
+
+- Carrito de compras.
+- Confirmación de pedidos.
+- Consulta de pedidos propios.
+- Cancelación de pedidos.
+- Actualización de estados desde administración.
+- Control y actualización de stock.
+- Resumen de pedidos e ingresos.
+
+## 5. Tecnologías utilizadas
+
+### Backend
+
+- Python
+- FastAPI
+- SQLModel
+- PostgreSQL
+- Pydantic
+- JWT
+
+### Frontend
+
+- React 19
+- TypeScript
+- Vite 7
+- Tailwind CSS 4
+- TanStack Query
+- TanStack Form
+- TanStack Table
+- Zustand
+- Axios
+- React Router
+
+## 6. Estructura del proyecto
+
+```text
+TP-Integrador-PrograVI/
+├── backend/
+│   ├── app/
+│   │   ├── core/
+│   │   ├── db/
+│   │   └── modules/
+│   ├── .env.example
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   ├── .env.example
+│   └── package.json
+├── .gitignore
+└── README.md
+```
+
+## 7. Repositorio
+
+https://github.com/Fernando-Aguillon/TP-Integrador-PrograVI
